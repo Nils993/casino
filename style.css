@@ -1,0 +1,108 @@
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: radial-gradient(circle, #111, #000);
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+#game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transform: scale(0.75, 0.75);
+}
+.answer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 150px;
+}
+#result {
+  margin-top: 30px;
+  font-size: 40px;
+  color: gold;
+  text-align: center;
+}
+
+#field {
+  margin-top: 50px;
+  display: grid;
+  grid-template-columns: repeat(5, 200px);
+  gap: 10px;
+  border: 12px solid gold;
+  border-radius: 20px;
+  box-shadow: 0 0 30px gold;
+  padding: 10px;
+  background: #111;
+}
+
+.reel {
+  width: 200px;
+  height: 600px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  border: 3px solid #444;
+  background: black;
+  position: relative;
+  transform: scaleY(-1);
+}
+
+.reel img {
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+  background: #000;
+  border: none;
+  transform: scaleY(-1);
+}
+
+.reel-inner {
+  min-height: calc(20 * 200px);
+}
+
+#startBtn {
+  margin-top: 50px;
+  margin-bottom: 50px;
+  padding: 20px 60px;
+  font-size: 32px;
+  background: linear-gradient(180deg, #ffd700, #ff9900);
+  border: none;
+  border-radius: 15px;
+
+  cursor: pointer;
+  box-shadow:
+    0 5px 0 #cc7a00,
+    0 0 20px gold;
+}
+
+#startBtn:active {
+  transform: translateY(3px);
+}
+
+.orientation-warning::before {
+  content: "Поверните устройство вертикально для игры";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial, sans-serif;
+  font-size: 20px;
+  z-index: 9999;
+  text-align: center;
+  padding: 20px;
+}
