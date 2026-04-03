@@ -21,18 +21,20 @@ let spinning = false;
 function randomSymbol() {
   return Math.floor(Math.random() * symbols.length);
 }
-
 function createReels() {
   for (let i = 0; i < COLS; i++) {
     const reel = document.createElement("div");
     reel.className = "reel";
     const inner = document.createElement("div");
     inner.className = "reel-inner";
+    const fragment = document.createDocumentFragment();
     for (let j = 0; j < 20; j++) {
       const img = document.createElement("img");
       img.src = symbols[randomSymbol()];
-      inner.appendChild(img);
+      fragment.appendChild(img);
     }
+    inner.appendChild(fragment);
+
     reel.appendChild(inner);
     field.appendChild(reel);
 
@@ -40,9 +42,11 @@ function createReels() {
       el: inner,
       position: 0,
       speed: 0,
+      isAnimating: false,
     });
   }
 }
+
 createReels();
 
 function animate() {
@@ -68,7 +72,7 @@ document.getElementById("startBtn").onclick = () => {
   spinning = true;
 
   document.getElementById("result").textContent = "Крутим...";
-  document.getElementById("combo").innerHTML = "";
+  document.getElementById("combo").textContent = "";
 
   reels.forEach((r, i) => {
     r.speed = 20;
@@ -87,51 +91,69 @@ function stopSpin(res) {
   document.getElementById("result").textContent =
     "Ответ сервера:  Задержка: " + res.delay + " сек";
 }
+
 function slowStop(reel, targetSymbolIndex) {
   let deceleration = 0.5;
+  let lastTime = null;
 
-  const interval = setInterval(() => {
-    reel.speed -= deceleration;
-    if (reel.speed <= 0) {
-      clearInterval(interval);
+  function animate(currentTime) {
+    if (!lastTime) lastTime = currentTime;
+    const delta = currentTime - lastTime;
+    lastTime = currentTime;
+
+    reel.speed -= deceleration * (delta / 16);
+
+    if (reel.speed > 0) {
+      requestAnimationFrame(animate);
+    } else {
+      reel.speed = 0;
       spinToSymbol(reel, targetSymbolIndex);
     }
-  }, 16);
+  }
+
+  requestAnimationFrame(animate);
 }
+
 function spinToSymbol(reel, targetSymbolIndex) {
   const children = reel.el.children;
   const total = children.length;
-
   const centerRow = 1;
-  const currentRow = Math.round(reel.position / SYMBOL_SIZE);
-  const targetIndex = currentRow + centerRow;
 
-  children[targetIndex].src = symbols[targetSymbolIndex];
-  const targetPosition = (targetIndex - centerRow) * SYMBOL_SIZE;
+  const currentRow = Math.floor(reel.position / SYMBOL_SIZE);
+  const targetRow = currentRow + centerRow;
+
+  const safeTargetIndex = Math.max(0, Math.min(total - 1, targetRow));
+
+  children[safeTargetIndex].src = symbols[targetSymbolIndex];
+  const targetPosition = (safeTargetIndex - centerRow) * SYMBOL_SIZE;
 
   smoothScroll(reel, targetPosition);
 }
 
 function smoothScroll(reel, target) {
+  if (reel.isAnimating) return;
+  reel.isAnimating = true;
+
   const start = reel.position;
   const distance = target - start;
   const duration = 400;
-
   let startTime = null;
 
   function animateScroll(time) {
     if (!startTime) startTime = time;
-    const t = (time - startTime) / duration;
+    const t = Math.min((time - startTime) / duration, 1);
     const eased = t < 1 ? t * t * (3 - 2 * t) : 1;
 
     reel.position = start + distance * eased;
     reel.el.style.transform = `translateY(-${Math.round(reel.position)}px)`;
 
-    if (t < 1) requestAnimationFrame(animateScroll);
-    else {
+    if (t < 1) {
+      requestAnimationFrame(animateScroll);
+    } else {
       reel.position = target;
       snapToGrid(reel);
       bounce(reel);
+      reel.isAnimating = false;
       checkAllStopped();
     }
   }
